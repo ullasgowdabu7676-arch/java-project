@@ -1,0 +1,48 @@
+// Source code is decompiled from a .class file using FernFlower decompiler (from Intellij IDEA).
+package com.college.rbac;
+
+import com.college.rbac.controller.ApiHandler;
+import com.college.rbac.model.Role;
+import com.college.rbac.service.AuditService;
+import com.college.rbac.service.MarksService;
+import com.college.rbac.service.RolePermissionService;
+import com.college.rbac.service.UserService;
+import com.sun.net.httpserver.HttpServer;
+import java.net.InetSocketAddress;
+import java.util.concurrent.Executors;
+
+public class Main {
+   private static final int PORT = 8080;
+
+   public Main() {
+   }
+
+   public static void main(String[] var0) throws Exception {
+      System.out.println("╔══════════════════════════════════════════════════════════════╗");
+      System.out.println("║         COLLEGE PORTAL — ROLE-BASED ACCESS CONTROL           ║");
+      System.out.println("╚══════════════════════════════════════════════════════════════╝");
+      System.out.println();
+      AuditService var1 = new AuditService();
+      RolePermissionService var2 = new RolePermissionService();
+      UserService var3 = new UserService(var2, var1);
+      MarksService var4 = new MarksService(var2, var1, var3);
+      System.out.println("\ud83d\udccb PERMISSION MATRIX:");
+
+      for(Role var8 : Role.values()) {
+         System.out.println(var2.getRoleSummary(var8));
+      }
+
+      System.out.println("\ud83d\udc64 DEFAULT CREDENTIALS:");
+      System.out.println("  Admin   -> username: admin     | password: admin123");
+      System.out.println("  Faculty -> username: faculty1  | password: faculty123");
+      System.out.println("  Student -> username: student1  | password: student123");
+      System.out.println();
+      HttpServer var9 = HttpServer.create(new InetSocketAddress(8080), 50);
+      ApiHandler var10 = new ApiHandler(var3, var4, var1, var2);
+      var9.createContext("/", var10);
+      var9.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+      var9.start();
+      System.out.println("✅ Server started at http://localhost:8080");
+      System.out.println("   Press Ctrl+C to stop.\n");
+   }
+}
